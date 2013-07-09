@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>simple charts</title>
+        <link href="simplecharts.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <div style="width: 500px; border: 1px solid gray;">
+            <div id="doughnut"></div>
+            <p style="border: 1px solid gray; padding: 10px;">Lorem ipsum</p>
+            <div id="bar"></div>
+        </div>
+        <script src="simplecharts.js" type="text/javascript"></script>
+        <script type="text/javascript">
+
+            var doughnut = new portal.Chart('doughnut').render('pie', {
+                values: [5,1],
+                labels: ['foo', 'bar', 'baz']
+            }, {
+                width: 200,
+                height: 200,
+                svgPadding: 10,
+                id: 'doughnut',
+                centroidPadding: 45,
+                chartPadding: {
+                    left: 0
+                }
+            });
+
+
+            var bar = new portal.Chart('bar').render('bar', {
+                values: [50, 70, 85, 70, 75, 55, 90, 85, 60, 65, 70, 70],
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            }, {
+                width: 500,
+                height: 200,
+                svgPadding: 10,
+                id: 'bar',
+                chartPadding: {
+                    left: 60
+                }
+            });
+        </script>
+    </body>
+</html>
