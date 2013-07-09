@@ -1,12 +1,6 @@
-/**
- * This is the namespace for the portal related JS modules
- *
- * @type {*|{}}
- */
 var portal = portal || {};
 
 portal.Chart = (function (wrapper) {
-
     "use strict";
 
     var i;
@@ -16,8 +10,8 @@ portal.Chart = (function (wrapper) {
      *
      * Helper function to create an SVG tag with an object attributes
      *
-     * @param tag
-     * @param attrs
+     * @param {String} tag
+     * @param {Object} attrs
      * @returns {HTMLElement}
      * @private
      */
@@ -34,36 +28,27 @@ portal.Chart = (function (wrapper) {
      *
      * Generate an SVG doughnut chart
      *
-     * @param data
-     * @param options
+     * @param {Array} data
+     * @param {Object} options
      * @returns {HTMLElement}
      * @private
      */
     function _generateDoughnut(data, options) {
         var svg = _createSVGTag('svg', {width: options.width, height: options.height, id: options.id})
-            , container = document.getElementById(wrapper)
-            , total = data.values.reduce(function (accumulated, thisVal) { return thisVal + accumulated; }, 0)
-            , segments = data.values.map(function (val) { return 360 * val / total; })
-            , centerPoint = ~~options.width / 2
-            , svgPadding = ~~options.svgPadding || 5
-            , centroidPadding = ~~options.centroidPadding || 0
-            , radius = centerPoint - svgPadding
-            , endAngle = 0;
+          , container = document.getElementById(wrapper)
+          , total = data.values.reduce(function (accumulated, thisVal) { return thisVal + accumulated; }, 0)
+          , segments = data.values.map(function (val) { return 360 * val / total; })
+          , centerPoint = ~~options.width / 2
+          , svgPadding = ~~options.svgPadding || 5
+          , centroidPadding = ~~options.centroidPadding || 0
+          , radius = centerPoint - svgPadding
+          , endAngle = 0;
 
         for ( i = 0; i < segments.length; i++ ) {
-            var startAngle = endAngle,
-                segmentCoords = {
-                    outer: {
-                        alpha: {},
-                        beta: {}
-                    },
-                    inner: {
-                        alpha: {},
-                        beta: {}
-                    }
-                },
-                d,
-                path;
+            var startAngle = endAngle
+              , segmentCoords = { outer: { alpha: {}, beta: {} }, inner: { alpha: {}, beta: {} }}
+              , d
+              , path;
 
             endAngle = startAngle + segments[i];
 
@@ -106,32 +91,32 @@ portal.Chart = (function (wrapper) {
      *
      * Generate an SVG bar chart
      *
-     * @param data
-     * @param options
+     * @param {Array} data
+     * @param {Object} options
      * @returns {HTMLElement}
      * @private
      */
     function _generateBar(data, options) {
         var container = document.getElementById(wrapper)
-            , svg = _createSVGTag('svg', {width: options.width, height: options.height, id: options.id})
-            , chartGroup = _createSVGTag('g', {transform: 'translate(' + options.chartPadding.left + ' , 0)'})
-            , yAxisLabelGroup = _createSVGTag('g', {})
-            , xAxisLabelGroup = _createSVGTag('g', {transform: 'translate(' + options.chartPadding.left + ' , 0)'})
-            , maxValue = Math.max.apply( Math, data.values )
-            , barXPadding = 5
-            , SVGPadding = {
+          , svg = _createSVGTag('svg', {width: options.width, height: options.height, id: options.id})
+          , chartGroup = _createSVGTag('g', {transform: 'translate(' + options.chartPadding.left + ' , 0)'})
+          , yAxisLabelGroup = _createSVGTag('g', {})
+          , xAxisLabelGroup = _createSVGTag('g', {transform: 'translate(' + options.chartPadding.left + ' , 0)'})
+          , maxValue = Math.max.apply( Math, data.values )
+          , barXPadding = 5
+          , SVGPadding = {
                 top: 10,
                 bottom: 10,
                 left: 20
             }
-            , chartPadding = {
+          , chartPadding = {
                 top: 20,
                 bottom: 50,
                 left: 50
             }
-            , chartHeight = options.height - SVGPadding.top - SVGPadding.bottom - chartPadding.top - chartPadding.bottom
-            , barWidth = Math.round((~~options.width - chartPadding.left) / data.values.length) - 2 * barXPadding
-            , x, y, textNode, barHeight, yAxisLabel;
+          , chartHeight = options.height - SVGPadding.top - SVGPadding.bottom - chartPadding.top - chartPadding.bottom
+          , barWidth = Math.round((~~options.width - chartPadding.left) / data.values.length) - 2 * barXPadding
+          , x, y, textNode, barHeight, yAxisLabel;
 
         // create rects
         for ( i = 0; i < data.values.length; i++ ) {
