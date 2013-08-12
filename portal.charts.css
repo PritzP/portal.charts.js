@@ -6,6 +6,7 @@ path:hover {
 #doughnut-path-0{fill: #5eb582;}
 #doughnut-path-1{fill: #d8d8d8;}
 
-#bar {background: #5eb582;}
-#bar rect {fill: white;}
-#bar text {fill: white;}
+#bar rect {fill: lightblue;}
+#bar text {font-size: 1.25em;}
+#bar #values-group text {font-size: 1.25em; fill: white; }
+#bar #keys-group text {font-size: 1em; fill: #333; }
