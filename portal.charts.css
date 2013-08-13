@@ -1,12 +1,9 @@
-path:hover {
-    opacity: 0.8;
-}
-
-#doughnut {margin: 0 auto; width: 200px;}
-#doughnut-path-0{fill: #5eb582;}
-#doughnut-path-1{fill: #d8d8d8;}
+#pie text {font-size: 1.5em; fill: coral;}
+#pie-driven {fill: lightblue;}
+#pie-available {fill: coral;}
 
 #bar rect {fill: lightblue;}
+#bar rect.active, #bar rect:hover {fill: coral;}
 #bar text {font-size: 1.25em;}
 #bar #values-group text {font-size: 1.25em; fill: white; }
 #bar #keys-group text {font-size: 1em; fill: #333; }

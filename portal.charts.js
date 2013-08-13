@@ -1,12 +1,54 @@
 var portal = portal || {};
 
-portal.Chart = function (el) {
+portal.charts = [];
 
-    var i = 0
-      , chartGroup = _createSVGTag('g', {})
-      , container = document.getElementById(el)
+portal.Chart = function (el, type, data, options) {
+
+    portal.charts.push(this);
+
+    this.el = el;
+    this.type = type;
+    this.data = data;
+    this.options = options;
+
+    var container = document.getElementById(el)
       , containerWidth = container.offsetWidth
-      , chartGroupHeight;
+      , chartGroupHeight = options.svg.height - options.svg.chart.margin.bottom;
+
+    if ( this.type === 'doughnut' || this.type === 'pie' ) {
+        this.chart = _generateDoughnut(this.data, this.options);
+    } else {
+        this.chart = _generateBar(this.data, this.options);
+    }
+
+    function _generateSegmentAngles(data, total) {
+        var segments = {};
+        for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+                segments[property] = 360 * data[property] / total;
+            }
+        }
+        return segments;
+    }
+
+    /**
+     * Sum all values
+     *
+     * Sum all values in a data object and return the value
+     *
+     * @param {Object} data
+     * @returns {number}
+     * @private
+     */
+    function _sumAllValues(data) {
+        var total = 0;
+        for (var property in data) {
+            if (data.hasOwnProperty(property)) {
+                total += data[property];
+            }
+        }
+        return total;
+    }
 
     /**
      * Pluck Largest Value
@@ -58,7 +100,66 @@ portal.Chart = function (el) {
      * @private
      */
     function _generateDoughnut(data, options) {
+        var svg = _createSVGTag('svg', {width: containerWidth, height: options.svg.height})
+            , total = _sumAllValues(data)
+            , segments = _generateSegmentAngles(data, total)
+            , centerPoint = Math.min.apply(Math, [containerWidth, options.svg.height]) / 2
+            , svgPadding = 5
+            , centroidPadding = options.svg.chart.doughnut.centroidPadding || 0
+            , radius = centerPoint - svgPadding
+            , endAngle = 0
+            , milesAvailableTextNode
+            , milesTextNode
+            , prop;
 
+        for (prop in data) {
+            var startAngle = endAngle
+                , coords = {outer: {alpha: {}, beta: {}}, inner: {alpha: {}, beta: {}}}
+                , d
+                , path;
+
+            endAngle = startAngle + segments[prop];
+
+            coords.outer.alpha.x = Math.round(centerPoint + radius * Math.cos(Math.PI * startAngle / 180));
+            coords.outer.alpha.y = Math.round(centerPoint + radius * Math.sin(Math.PI * startAngle / 180));
+            coords.outer.beta.x = Math.round(centerPoint + radius * Math.cos(Math.PI * endAngle / 180));
+            coords.outer.beta.y = Math.round(centerPoint + radius * Math.sin(Math.PI * endAngle / 180));
+            coords.inner.alpha.x = Math.round(centerPoint + centroidPadding * Math.cos(Math.PI * startAngle / 180));
+            coords.inner.alpha.y = Math.round(centerPoint + centroidPadding * Math.sin(Math.PI * startAngle / 180));
+            coords.inner.beta.x = Math.round(centerPoint + centroidPadding * Math.cos(Math.PI * endAngle / 180));
+            coords.inner.beta.y = Math.round(centerPoint + centroidPadding * Math.sin(Math.PI * endAngle / 180));
+
+            // move to start of outer arc
+            d = 'M' + coords.outer.alpha.x + ',' + coords.outer.alpha.y;
+
+            // arc around outer edge of segment
+            d += ' A ' + radius + ',' + radius + ' 0 ' + ((endAngle - startAngle > 180) ? '1' : '0') + ' 1 ' + coords.outer.beta.x + ',' + coords.outer.beta.y;
+
+            // line to inner edge of segment
+            d += ' L ' + coords.inner.beta.x + ',' + coords.inner.beta.y;
+
+            // arc around inner end of segment
+            d += ' A ' + centroidPadding + ',' + centroidPadding + ' 0 ' + ((endAngle - startAngle > 180) ? '1' : '0') + ' 0 ' + coords.inner.alpha.x + ',' + coords.inner.alpha.y;
+
+            // end
+            d += ' z';
+
+            path = _createSVGTag("path", {d: d, id: el + '-' + prop});
+
+            svg.appendChild(path);
+        }
+
+        milesAvailableTextNode = _createSVGTag("text", {x: centerPoint - 24, y: centerPoint - 60, id: 'miles-available-text'});
+        milesAvailableTextNode.appendChild(document.createTextNode(data['available']));
+        svg.appendChild(milesAvailableTextNode);
+
+        milesTextNode = _createSVGTag("text", {x: centerPoint - 78, y: centerPoint - 20, id: 'miles-available-text'});
+        milesTextNode.appendChild(document.createTextNode('Miles Available'));
+        svg.appendChild(milesTextNode);
+
+        container.appendChild(svg);
+
+        return container;
     }
 
     /**
@@ -73,12 +174,13 @@ portal.Chart = function (el) {
      */
     function _generateBar(data, options) {
         var svg = _createSVGTag('svg', {width: containerWidth, height: options.svg.height})
+          , chartGroup = _createSVGTag('g', {})
           , valuesGroup = _createSVGTag('g', {id: 'values-group'})
           , keysGroup = _createSVGTag('g', {id: 'keys-group'})
           , largestDataValue = _pluckLargestValue(data)
           , numDataValues = Object.size(data)
           , barWidth = containerWidth / numDataValues - options.svg.chart.bar.margin.right
-          , barHeight, x, y, textNode, prop;
+          , barHeight, x, y, textNode, prop, i = 0;
 
         for ( prop in data ) {
             if (data.hasOwnProperty(prop)) {
@@ -112,29 +214,34 @@ portal.Chart = function (el) {
         return container;
     }
 
-    /**
-     * Render chart
-     *
-     * @param type
-     * @param data
-     * @param options
-     * @returns {*}
-     */
-    this.render = function (type, data, options) {
+    this.resize = function () {
 
-        chartGroupHeight = options.svg.height - options.svg.chart.margin.bottom;
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
 
-        if ( type === 'doughnut' || type === 'pie' ) {
-            return _generateDoughnut(data, options);
+        containerWidth = container.offsetWidth;
+
+        if ( this.type === 'doughnut' || this.type === 'pie' ) {
+            this.chart = _generateDoughnut(this.data, this.options);
         } else {
-            return _generateBar(data, options);
+            this.chart = _generateBar(this.data, this.options);
         }
     }
+
 };
 
 
 
 
+
+window.onresize = function() {
+    var i;
+
+    for ( i = 0; i < portal.charts.length; i++ ) {
+        portal.charts[i].resize();
+    }
+};
 
 
 
